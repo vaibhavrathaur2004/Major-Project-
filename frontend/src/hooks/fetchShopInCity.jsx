@@ -7,11 +7,6 @@ function fetchShopInCity(){
    const dispatch = useDispatch()
    const city = useSelector(state=> state.user.currentCity)
    
- 
-   
-
-   
-   
   
     useEffect(()=>{
         const fetchshop =async(req,res)=>{

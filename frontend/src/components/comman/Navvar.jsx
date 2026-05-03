@@ -18,7 +18,7 @@ const Navvar = () => {
             <div className="max-w-7xl mx-auto w-11/12 py-3 text-white flex items-center justify-between">
 
                 {/* Logo */}
-                <h1 className="text-3xl text-[#FCEDD6]font-bold tracking-wide">Sasta Swiggy</h1>
+                <h1 className="text-3xl text-[#FCEDD6]font-bold tracking-wide">Tandoor<span className="text-black font-semibold">X</span>press</h1>
 
                 {/* Location + Search */}
                 {user.role === 'user' && 
@@ -46,6 +46,9 @@ const Navvar = () => {
                 {user.role === 'user' && 
                     <div className="flex items-center gap-6">
 
+                        <Link to="/my-orders" className="text-lg. bg-black px-5 py-2 rounded-lg">
+                            My Orders
+                        </Link>
                         {/* Cart */}
                         <div className="flex items-center gap-2 cursor-pointer relative  p-1" >
                            {items?.length > 0 && (
@@ -75,11 +78,13 @@ const Navvar = () => {
                 {user.role === "owner" && 
                    <div className="flex gap-5 items-center justify-center ">
                    {shop &&  
-                     <button className=" text-xl bg-black px-5 py-2 rounded"> + Add Food Item </button>
+                     <button className=" text-xl bg-black px-5 py-2 rounded-md"> + Add Food Item </button>
                    }
 
                     <div className="relative">
-                        <button className="text-xl  bg-black px-5 py-2 rounded">My Orders</button>
+                        <Link to="/my-orders" className="text-lg. bg-black px-5 py-3 rounded-md">
+                            My Orders
+                        </Link>
                         {/* <span className="absolute flex items-center justify-center bg-[#886840] w-7 rounded-full p-1 ">0</span> */}
                     </div>
                    </div>

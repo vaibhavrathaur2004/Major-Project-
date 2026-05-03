@@ -20,6 +20,8 @@ function getCurrentCity() {
           //  console.log(res.data.results[0].formatted);
             
             dispatch(setCurrentcity(res.data.results[0].city))
+            console.log(res.data.results[0].city);
+            
             dispatch(setLocation({latitude,longitude}))
             dispatch(setAddress(res.data.results[0].formatted))
             

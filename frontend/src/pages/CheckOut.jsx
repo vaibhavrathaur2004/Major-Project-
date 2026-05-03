@@ -38,12 +38,11 @@ const UpdateLocation = ({ location }) => {
 };
 
 
-
-
-
 const CheckOut = () => {
   const navigate = useNavigate()
   const [addressInput, setAddressInput] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("cash");
+
   const user = useSelector(state => state.user.userData)
   
   const coods = useSelector(state => state.map.location)
@@ -121,13 +120,14 @@ const CheckOut = () => {
     try{
       const data = {
         items:items,
+        itemsss:formattedItems,
         totalPrice,
         deliveryAddress: {
           address: addressInput,
           latitude:coods.latitude,
           longitude:coods.longitude,
         },
-        paymentMethod: "cash",
+       paymentMethod: paymentMethod,
       };
       const res = await axios.post("http://localhost:4000/api/order/place-order",data,{withCredentials:true})
       console.log(res.data)
@@ -141,6 +141,39 @@ const CheckOut = () => {
     setAddressInput(address)
   }, [address])
 
+
+  if (!items || items.length === 0) {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
+      
+      {/* Image */}
+      <div className="bg-orange-50 p-6 rounded-full mb-4">
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png"
+          alt="empty-cart"
+          className="w-24 opacity-80"
+        />
+      </div>
+
+      {/* Text */}
+      <h2 className="text-2xl font-semibold text-gray-800">
+        Your cart is empty 🛒
+      </h2>
+
+      <p className="text-gray-500 mt-2 max-w-xs">
+        Add some tasty food to place your order 🍕
+      </p>
+
+      {/* Button */}
+      <button
+        onClick={() => navigate("/")}
+        className="mt-6 bg-orange-500 text-white px-8 py-3 rounded-full font-medium hover:bg-orange-600 transition shadow-md"
+      >
+        Go to Menu 🍔
+      </button>
+    </div>
+  );
+}
 
   return (
     <div className="w-full min-h-screen bg-gray-100 py-6 ">
@@ -254,8 +287,9 @@ const CheckOut = () => {
               <input
                 type="radio"
                 name="payment"
-                className="accent-black"
-                defaultChecked
+                value="cash"
+                checked={paymentMethod === "cash"}
+                onChange={(e) => setPaymentMethod(e.target.value)}
               />
               <div>
                 <p className="font-medium text-sm">Cash on Delivery</p>
@@ -266,9 +300,11 @@ const CheckOut = () => {
             {/* UPI */}
             <label className="flex items-center gap-3 border rounded-lg p-3 cursor-pointer hover:border-black">
               <input
-                type="radio"
+               type="radio"
                 name="payment"
-                className="accent-black"
+                value="upi"
+                checked={paymentMethod === "upi"}
+                onChange={(e) => setPaymentMethod(e.target.value)}
               />
               <div>
                 <p className="font-medium text-sm">UPI</p>
@@ -281,7 +317,9 @@ const CheckOut = () => {
               <input
                 type="radio"
                 name="payment"
-                className="accent-black"
+                value="card"
+                checked={paymentMethod === "card"}
+                onChange={(e) => setPaymentMethod(e.target.value)}
               />
               <div>
                 <p className="font-medium text-sm">Credit / Debit Card</p>

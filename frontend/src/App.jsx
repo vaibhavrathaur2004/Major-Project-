@@ -17,13 +17,13 @@ import useCurrentCity from './hooks/getCurrentCity';
 import Cart from './pages/Cart';
 import CheckOut from './pages/CheckOut';
 import OrderPlace from './pages/OrderPlace';
-
-
-
+import getMyOrders from './hooks/getMyOrdres';
+import MyOrdres from './pages/MyOrdres';
 
 const App = () => {
   useCurrentCity()
   fetchShopInCity()
+  getMyOrders()
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -95,6 +95,7 @@ const App = () => {
       <Route path="/cart" element={<Cart />} />
       <Route path="/checkout" element={<CheckOut />} />
       <Route path="/order-success" element={<OrderPlace />} />
+      <Route path="/my-orders" element={<MyOrdres/>} />
     </Routes>
 
   );
