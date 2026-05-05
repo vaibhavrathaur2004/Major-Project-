@@ -133,7 +133,7 @@ exports.logout = async(req,res)=>{
         res.clearCookie('token')
         return res.status(200).json({
             success: true,
-            message: ' error',
+            message: ' Log out successfully',
         });
 
     }catch (err) {

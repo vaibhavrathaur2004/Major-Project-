@@ -4,6 +4,7 @@ import { MdRestaurant } from "react-icons/md";
 import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import { setShopData } from '../redex/features/ownerSlice';
+import toast from 'react-hot-toast';
 
 const CreateItem = () => {
     const categoryList = ["indian",
@@ -23,7 +24,6 @@ const CreateItem = () => {
         "street_food"
     ]
 
-    const owner = useSelector(state => state.owner.shopData)
     const dispatch = useDispatch()
     const navigate = useNavigate()
     const [name, setName] = useState("")
@@ -33,6 +33,7 @@ const CreateItem = () => {
     const [image, setImage] = useState("")
 
     const [imagePreview, setImagePreview] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
@@ -43,6 +44,12 @@ const CreateItem = () => {
     };
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (isSubmitting) return;
+
+        if (!name || !price || !foodType || !category || !image) {
+            toast.error("Please fill all fields");
+            return;
+        }
 
         const formmdata = new FormData();
         formmdata.append("name", name)
@@ -51,10 +58,23 @@ const CreateItem = () => {
         formmdata.append("category", category)
         formmdata.append("image", image)
 
-        const result = await axios.post("http://localhost:4000/api/item/add-item", formmdata, { withCredentials: true })
-        dispatch(setShopData(result.data.data))
-        navigate(-1)
-        console.log("responce", result.data.data);
+        const toastId = toast.loading("Adding item...");
+        try {
+            setIsSubmitting(true);
+            const result = await axios.post(
+                "http://localhost:4000/api/item/add-item",
+                formmdata,
+                { withCredentials: true }
+            );
+            dispatch(setShopData(result.data.data))
+            toast.success("Item created successfully!", { id: toastId })
+            navigate("/", { replace: true })
+        } catch (err) {
+            toast.error(err?.response?.data?.message || "Failed to add item", { id: toastId })
+            console.log(err);
+        } finally {
+            setIsSubmitting(false);
+        }
 
     }
 
@@ -186,9 +206,10 @@ const CreateItem = () => {
                     {/* Submit */}
                     <button
                         type="submit"
-                        className="mt-2 bg-[#FF5200] hover:bg-[#ff3f00] text-white py-3 rounded-xl font-semibold text-lg transition"
+                        disabled={isSubmitting}
+                        className="mt-2 bg-[#FF5200] hover:bg-[#ff3f00] disabled:opacity-60 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold text-lg transition"
                     >
-                        Add Item
+                        {isSubmitting ? "Adding..." : "Add Item"}
                     </button>
 
                 </form>

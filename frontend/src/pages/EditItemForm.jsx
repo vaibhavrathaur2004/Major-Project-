@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { MdRestaurant } from "react-icons/md";
 import axios from "axios";
+import toast from "react-hot-toast";
+import { useDispatch } from "react-redux";
+import { setShopData } from "../redex/features/ownerSlice";
 
 const EditItemForm = () => {
   const categoryList = [
@@ -12,6 +15,7 @@ const EditItemForm = () => {
 
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [item, setItem] = useState(null);
   const [name, setName] = useState("");
@@ -20,6 +24,7 @@ const EditItemForm = () => {
   const [category, setCategory] = useState("");
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Fetch existing item
   useEffect(() => {
@@ -54,7 +59,16 @@ const EditItemForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    if (!name || !price || !foodType || !category) {
+      toast.error("Please fill all fields");
+      return;
+    }
+
+    const toastId = toast.loading("Updating item...");
     try {
+      setIsSubmitting(true);
       const formData = new FormData();
       formData.append("name", name);
       formData.append("price", price);
@@ -65,13 +79,22 @@ const EditItemForm = () => {
       const result = await axios.put(
         `http://localhost:4000/api/item/edit-item/${id}`,
         formData,
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: { "Content-Type": "multipart/form-data" },
+        }
       );
 
-      console.log("Item updated:", result.data.data);
-      navigate(-1); // Go back to previous page
+      if (result?.data?.data) dispatch(setShopData(result.data.data));
+      toast.success("Item updated successfully!", { id: toastId });
+      navigate("/", { replace: true });
     } catch (err) {
       console.log("Error updating item:", err);
+      toast.error(err?.response?.data?.message || "Error updating item.", {
+        id: toastId,
+      });
+    } finally {
+      setIsSubmitting(false)
     }
   };
 
@@ -194,15 +217,16 @@ const EditItemForm = () => {
           {/* Submit */}
           <button
             type="submit"
-            className="mt-2 bg-[#FF5200] hover:bg-[#ff3f00] text-white py-3 rounded-xl font-semibold text-lg transition"
+            disabled={isSubmitting}
+            className="mt-2 bg-[#FF5200] hover:bg-[#ff3f00] disabled:opacity-60 disabled:cursor-not-allowed text-white py-3 rounded-xl font-semibold text-lg transition"
           >
-            Update Item
+            {isSubmitting ? "Updating..." : "Update Item"}
           </button>
 
         </form>
       </div>
     </div>
-  );
+  )
 };
 
 export default EditItemForm;

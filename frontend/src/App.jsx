@@ -1,10 +1,9 @@
-import React, { useEffect } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Signup from './pages/SignupPage';
 import Login from './pages/LoginPage';
 import './App.css';
 import Homepage from './pages/homepage';
-import Msg from './Msg';
 import { useDispatch, useSelector } from 'react-redux';
 import axios from 'axios';
 import { setUserData } from './redex/features/userSlice';
@@ -19,12 +18,14 @@ import CheckOut from './pages/CheckOut';
 import OrderPlace from './pages/OrderPlace';
 import getMyOrders from './hooks/getMyOrdres';
 import MyOrdres from './pages/MyOrdres';
+import ProtectedRoute from './components/ProtectedRoute';
 
 const App = () => {
   useCurrentCity()
   fetchShopInCity()
   getMyOrders()
   const dispatch = useDispatch()
+  const [authChecked, setAuthChecked] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -34,9 +35,11 @@ const App = () => {
         dispatch(setUserData(res.data.data));
         console.log("user logged in", res.data.data);
 
-      } catch (err) {
+      } catch {
         console.log("User not logged in");
+        dispatch(setUserData(null));
       }
+      setAuthChecked(true);
     };
     const fetchShop = async () => {
       try {
@@ -47,6 +50,7 @@ const App = () => {
 
       } catch (err) {
         console.log("shop not fetched successfully?", err);
+        dispatch(setShopData(null));
       }
     };
 
@@ -55,27 +59,7 @@ const App = () => {
     fetchUser();
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   const apiKey = import.meta.env.VITE_GEOAPIKEY;
-
-  //   navigator.geolocation.getCurrentPosition(
-  //     async (pos) => {
-  //       const { latitude, longitude } = pos.coords;
-
-  //       const res = await axios.get(
-  //         `https://api.geoapify.com/v1/geocode/reverse?lat=${latitude}&lon=${longitude}&format=json&apiKey=${apiKey}`
-  //       );
-
-  //       console.log("response ye aaya hai", res.data.results[0].city);
-  //     },
-  //     (err) => {
-  //       console.error("Location error:", err);
-  //     }
-  //   );
-  // }, []);
-
-
-
+  
 
   const user = useSelector(state => state.user.userData);
   // console.log("user data in store",user);
@@ -83,19 +67,30 @@ const App = () => {
   return (
 
     <Routes>
-      <Route path="/signup" element={!user ? <Signup /> : <Navigate to={"/"} />} />
-      <Route path="/login" element={!user ? <Login /> : <Navigate to={"/"} />} />
+      <Route
+        path="/signup"
+        element={!authChecked ? null : (!user ? <Signup /> : <Navigate to="/" replace />)}
+      />
+      <Route
+        path="/login"
+        element={!authChecked ? null : (!user ? <Login /> : <Navigate to="/" replace />)}
+      />
 
-      
-      <Route path="/" element={user ? <Homepage /> : <Navigate to={"/login"} />} />
+      <Route element={<ProtectedRoute user={user} authChecked={authChecked} />}>
+        <Route path="/" element={<Homepage />} />
+        <Route path="/cart" element={<Cart />} />
+        <Route path="/checkout" element={<CheckOut />} />
+        <Route path="/order-success" element={<OrderPlace />} />
+        <Route path="/my-orders" element={<MyOrdres />} />
+      </Route>
 
-      <Route path="/create-shop"element={user ? <CreateShop /> : <Navigate to="/login" />}/>
-      <Route path="/add-item" element={<CreateItem />} />
-      <Route path="/edit-item/:id" element={<EditItemForm />} />
-      <Route path="/cart" element={<Cart />} />
-      <Route path="/checkout" element={<CheckOut />} />
-      <Route path="/order-success" element={<OrderPlace />} />
-      <Route path="/my-orders" element={<MyOrdres/>} />
+      <Route element={<ProtectedRoute user={user} authChecked={authChecked} roles={["owner"]} />}>
+        <Route path="/create-shop" element={<CreateShop />} />
+        <Route path="/add-item" element={<CreateItem />} />
+        <Route path="/edit-item/:id" element={<EditItemForm />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to={user ? "/" : "/login"} replace />} />
     </Routes>
 
   );

@@ -36,6 +36,7 @@ app.use('/api/auth',UserRoutes)
 app.use('/api/shop',ShopRoutes)
 app.use('/api/item',ItemRoutes)
 app.use('/api/order',OrderRoutes)
+
 // Basic route
 app.get('/', (req, res) => {
   res.send('this is the first request');

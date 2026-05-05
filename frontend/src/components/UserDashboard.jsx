@@ -87,12 +87,15 @@ const data = [
 const UserDashboard = () => {
   const city = useSelector(state=> state.user.currentCity)
   const [items ,setItems] = useState([])
+
   useEffect(()=>{
         const getItems =async(req,res)=>{
             try{
-                const result = await axios.get(`http://localhost:4000/api/item/get-all`,{withCredentials:true})
-              //  console.log("result", result.data);
-                setItems(result.data.data)
+                const result = await axios.get(`http://localhost:4000/api/item/get-all/${city}`,{withCredentials:true})
+                const items = await result.data.data;
+                console.log(items);
+  
+              setItems(result.data.data)
                 
             }
             catch(err){
@@ -100,9 +103,9 @@ const UserDashboard = () => {
             }   
         }
         getItems()
-    },[])
+    },[city])
 
-  const shops = useSelector(state => state.user.shopInCity)
+  const shops = useSelector(state => state.user.shopInCity) || []
   
   const createRef = useRef()
   const shopRef = useRef()
@@ -200,4 +203,3 @@ const UserDashboard = () => {
 }
 
 export default UserDashboard
-

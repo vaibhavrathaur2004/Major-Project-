@@ -9,9 +9,9 @@ const Homepage = () => {
   
   return (
     <div >
-      {user.role === "user" && <UserDashboard/>}
-      {user.role === "owner" && <OwnerDashboard/>}
-      {user.role === "deliveryPartner" && <DeliveryPartner/>}
+      {user?.role === "user" && <UserDashboard/>}
+      {user?.role === "owner" && <OwnerDashboard/>}
+      {user?.role === "deliveryPartner" && <DeliveryPartner/>}
 
     </div>
   )

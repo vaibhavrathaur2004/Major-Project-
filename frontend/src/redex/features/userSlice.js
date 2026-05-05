@@ -6,7 +6,7 @@ const userSlice = createSlice({
     initialState:{
         userData:null,
         currentCity:null,
-        shopInCity:null,
+        shopInCity:[],
         cartItems:[],
         myOrders:[],
     },

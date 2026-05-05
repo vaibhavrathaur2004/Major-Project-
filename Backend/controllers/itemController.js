@@ -74,9 +74,10 @@ exports.updateItem = async (req, res) => {
   try {
     const { id } = req.params; // item id
     const { name, price, category, foodType } = req.body;
+    const userId = req.user?._id || req.user?.id;
 
     // 1. Check shop of logged-in user
-    const shop = await Shop.findOne({ owner: req.user._id });
+    const shop = await Shop.findOne({ owner: userId });
     if (!shop) {
       return res.status(404).json({
         success: false,
@@ -84,22 +85,48 @@ exports.updateItem = async (req, res) => {
       });
     }
 
-    // 2. Check item ownership
-    const item = await Item.findByIdAndUpdate(id,{
-        name, category, price,foodType
-    },{new:true});
+    // 2. Check item ownership (item must belong to this shop)
+    const ownsItem = shop.items?.some((itemId) => String(itemId) === String(id));
+    if (!ownsItem) {
+      return res.status(403).json({
+        success: false,
+        message: "Item does not belong to this shop",
+      });
+    }
+
+    const updateFields = {};
+    if (name !== undefined) updateFields.name = name;
+    if (price !== undefined) updateFields.price = price;
+    if (category !== undefined) updateFields.category = category;
+    if (foodType !== undefined) updateFields.foodType = foodType;
+
+    // Optional image update
+    const file = req.files?.image;
+    if (file) {
+      const response = await uploadFileCloudinary(file, "CloudData");
+      updateFields.image = response.secure_url;
+    }
+
+    const item = await Item.findByIdAndUpdate(
+      id,
+      { $set: updateFields },
+      { new: true }
+    );
 
     if (!item) {
       return res.status(404).json({
         success: false,
-        message: "Item not found or not owned by your shop",
+        message: "Item not found",
       });
     }
+
+    // Return updated shop (so frontend Redux can refresh without a full reload)
+    const updatedShop = await Shop.findById(shop._id).populate("items");
 
     return res.status(200).json({
       success: true,
       message: "Item updated successfully",
-      data: item,
+      data: updatedShop,
     });
 
   } catch (error) {
@@ -207,6 +234,65 @@ exports.getAllItem = async (req,res)=>{
     return res.status(500).json({
       success: false,
       message: "Server error",
+    });
+  }
+}
+
+exports.getItemByCityy = async(req,res) => {
+  const {city} = req.params;
+  try{
+    const shop = await Shop.find({city:city}).populate("items")
+        if(!shop){
+          return res.status(404).json({
+            success: false,
+            message: "Shop not found for this user",
+          });
+        }
+
+
+        return res.status(200).json({
+          success: true,
+          data: shop,
+      });
+      
+  }catch (error) {
+    console.log("Item deletion error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+}
+exports.getItemByCity = async (req, res) => {
+  const { city } = req.params;
+
+  try {
+    const shops = await Shop.find({ city }).populate("items");
+
+    if (!shops || shops.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No shops found",
+      });
+    }
+
+    const allItems = shops.flatMap(shop =>
+      shop.items.map(item => ({
+        ...item._doc,
+        shopName: shop.name,
+      }))
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: allItems,
+    });
+
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
     });
   }
 }

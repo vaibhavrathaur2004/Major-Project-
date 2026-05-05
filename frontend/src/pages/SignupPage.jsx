@@ -150,7 +150,7 @@ const Signup = () => {
       </form>
     </div>
   </div>
-  );
+  )
 };
 
 export default Signup;
