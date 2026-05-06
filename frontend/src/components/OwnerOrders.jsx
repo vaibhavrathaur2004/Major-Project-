@@ -1,11 +1,44 @@
-import React from 'react'
+import React, { useMemo, useState } from 'react'
+import axios from "axios";
+import { useDispatch } from "react-redux";
+import { setMyOrders } from "../redex/features/userSlice";
 
 export const OwnerOrders = ({ orders }) => {
+  const dispatch = useDispatch();
+  const [updatingOrderId, setUpdatingOrderId] = useState(null);
+  const sortedOrders = useMemo(() => {
+    return [...(orders || [])].sort(
+      (a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0)
+    );
+  }, [orders]);
 
-    const statusColors = {
+  const statusColors = {
     pending: "bg-orange-100 text-orange-600",
     preparing: "bg-yellow-100 text-yellow-600",
     delivered: "bg-green-100 text-green-600",
+  };
+
+  const refreshOrders = async () => {
+    const result = await axios.get(`http://localhost:4000/api/order/my-orders`, {
+      withCredentials: true,
+    });
+    dispatch(setMyOrders(result.data.data));
+  };
+
+  const updateStatus = async (orderId, status) => {
+    try {
+      setUpdatingOrderId(orderId);
+      await axios.post(
+        `http://localhost:4000/api/order/update-order-status/${orderId}`,
+        { status },
+        { withCredentials: true }
+      );
+      await refreshOrders();
+    } catch (err) {
+      console.log(err);
+    } finally {
+      setUpdatingOrderId(null);
+    }
   };
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white p-4 md:p-10">
@@ -15,11 +48,11 @@ export const OwnerOrders = ({ orders }) => {
         🍽️ <span className="text-orange-500">Owner</span> Orders
       </h1>
 
-      {orders?.length === 0 ? (
+      {sortedOrders?.length === 0 ? (
         <p className="text-gray-500">No orders available</p>
       ) : (
         <div className="grid gap-6">
-          {orders?.map((order) => (
+          {sortedOrders?.map((order) => (
             <div
               key={order._id}
               className="bg-white rounded-3xl p-6 shadow-md border border-orange-100 hover:shadow-xl transition"
@@ -133,18 +166,20 @@ export const OwnerOrders = ({ orders }) => {
                 {order.status === "pending" && (
                   <button
                     onClick={() => updateStatus(order._id, "preparing")}
+                    disabled={updatingOrderId === order._id}
                     className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
                   >
-                    Accept Order
+                    {updatingOrderId === order._id ? "Updating..." : "Accept Order"}
                   </button>
                 )}
 
                 {order.status === "preparing" && (
                   <button
                     onClick={() => updateStatus(order._id, "delivered")}
+                    disabled={updatingOrderId === order._id}
                     className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition"
                   >
-                    Mark Delivered
+                    {updatingOrderId === order._id ? "Updating..." : "Mark Delivered"}
                   </button>
                 )}
 
@@ -176,4 +211,3 @@ export const OwnerOrders = ({ orders }) => {
     </div>
   );
 };
-

@@ -1,10 +1,25 @@
-import React from 'react'
-import { useSelector } from 'react-redux';
+import React, { useMemo } from 'react'
 import { useNavigate } from "react-router-dom";
 
 const UserOrders = ({ orders }) => {
   
   const navigate = useNavigate();
+  const sortedOrders = useMemo(() => {
+    return [...(orders || [])].sort(
+      (a, b) => new Date(b?.createdAt || 0) - new Date(a?.createdAt || 0)
+    );
+  }, [orders]);
+  const statusColors = {
+    pending: "bg-orange-100 text-orange-600",
+    preparing: "bg-yellow-100 text-yellow-600",
+    delivered: "bg-green-100 text-green-600",
+  };
+  const statusLabel = (status) => {
+    if (status === "pending") return "Pending";
+    if (status === "preparing") return "Preparing";
+    if (status === "delivered") return "Delivered";
+    return status || "Unknown";
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-50 to-white p-4 md:p-10">
@@ -24,7 +39,7 @@ const UserOrders = ({ orders }) => {
       </div>
 
       {/* Empty State */}
-      {orders?.length === 0 ? (
+      {sortedOrders?.length === 0 ? (
         <div className="flex flex-col items-center justify-center mt-20 text-center">
           <div className="w-20 h-20 bg-orange-100 rounded-full flex items-center justify-center mb-4">
             📦
@@ -36,7 +51,7 @@ const UserOrders = ({ orders }) => {
         </div>
       ) : (
         <div className="grid gap-6">
-          {orders?.map((order) => (
+          {sortedOrders?.map((order) => (
             <div
               key={order._id}
               className="bg-white rounded-3xl p-6 shadow-sm hover:shadow-xl transition duration-300 border border-orange-100"
@@ -58,21 +73,19 @@ const UserOrders = ({ orders }) => {
                 <div className="flex gap-2 flex-wrap">
                   <span
                     className={`px-3 py-1 text-xs rounded-full font-medium ${
-                      order.status === "pending"
-                        ? "bg-orange-100 text-orange-600"
-                        : "bg-green-100 text-green-600"
+                      statusColors[order.status] || "bg-gray-100 text-gray-700"
                     }`}
                   >
-                    {order.status === "pending" ? "Pending" : "Completed"}
+                    {statusLabel(order.status)}
                   </span>
 
                   <span className="px-3 py-1 text-xs rounded-full bg-gray-100 text-gray-700 font-medium">
                     {order.paymentMethod === "cash" ? "Cash on Delivery" : "Online Payment"}
                   </span>
 
-                  <span className="px-3 py-1 text-xs rounded-full bg-red-100 text-red-600 font-medium">
+                  {/* <span className="px-3 py-1 text-xs rounded-full bg-red-100 text-red-600 font-medium">
                     {order.paymentStatus === "pending" ? "Pending" : "Completed"}
-                  </span>
+                  </span> */}
                 </div>
               </div>
 

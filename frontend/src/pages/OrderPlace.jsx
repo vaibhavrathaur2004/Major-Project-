@@ -1,6 +1,9 @@
 import React from "react";
+import { Link, useNavigate } from 'react-router-dom';
 
 const OrderPlace = () => {
+
+  const navigate = useNavigate()
   return (
     <div className="min-h-screen flex items-center justify-center bg-orange-50 px-4">
       <div className="bg-white shadow-xl rounded-2xl p-8 max-w-md w-full text-center">
@@ -50,7 +53,7 @@ const OrderPlace = () => {
           <button className="w-full bg-orange-500 text-white py-2 rounded-lg hover:bg-orange-600 transition">
             Track Order
           </button>
-          <button className="w-full border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition">
+          <button onClick={() => navigate("/")}className="w-full border border-gray-300 py-2 rounded-lg hover:bg-gray-100 transition">
             Order More 🍔
           </button>
         </div>

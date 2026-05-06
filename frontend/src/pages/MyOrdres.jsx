@@ -5,6 +5,8 @@ import UserOrders from "../components/UserOrders";
 
 const MyOrders = () => {
   const orders = useSelector((state) => state.user.myOrders);
+  console.log(orders);
+  
   const user = useSelector((state) => state.user.userData);
 
   
